@@ -1,6 +1,4 @@
 var jsonStringa;
-var ultimoGiorno;
-var ultimoValore;
 var sim;
 
 function setup() {
@@ -9,22 +7,25 @@ function setup() {
     let stopbutton = select('#stopbutton');
     var timer;
 
-    var simValue = 0;
     var giorno = 0;
-    var dataGiorno;
+    var dataInizioSimulazione;
+
+    var ultimoGiorno;
+    var ultimoValore;
 
     startbutton.mousePressed(btnSimula);
     stopbutton.mousePressed(btnStop);
 
     function btnSimula() {
         // LEGGI JSON
-        // ultimoGiorno = jsonStringa['lista'][jsonStringa['lista'].length - 1][0];
-        // ultimoValore = jsonStringa['lista'][jsonStringa['lista'].length - 1][1];
-        var jqxhr = $.getJSON("registrazione.json", function(json) {
+        var jqxhr = $.getJSON("completo.json", function(json) {
                 jsonStringa = json;
-                var parts = jsonStringa["giorno"].split('/');
-                dataGiorno = new Date(parts[2], parts[1] - 1, parts[0]);
-                simValue = parseFloat(jsonStringa["valore"]);
+
+                ultimoGiorno = jsonStringa['lista'][jsonStringa['lista'].length - 1][0];
+                ultimoValore = parseFloat(jsonStringa['lista'][jsonStringa['lista'].length - 1][1]);
+
+                var parts = ultimoGiorno.split('/');
+                dataInizioSimulazione = new Date(parts[2], parts[1] - 1, parts[0]);
             })
             .always(function() {
 
@@ -44,7 +45,7 @@ function setup() {
 
                 let profiloannuale = new ProfiloAnnuale(profiloMensile, profiloSettimanale, profiloOrario);
 
-                sim = new Simulazione(dataGiorno, simValue, profiloannuale);
+                sim = new Simulazione(dataInizioSimulazione, ultimoValore, profiloannuale);
 
                 timer = setInterval(ciclaSimulazione, 1000);
             });
@@ -53,15 +54,6 @@ function setup() {
 
     function btnStop() {
         clearTimeout(timer);
-        $.ajax({
-            type: "POST",
-            url: "salva.php",
-            data: { data: JSON.stringify({ 'giorno': sim.getGiorno(), 'valore': sim.getValore() }) },
-            success: function(msg) {
-                console.log(msg);
-            },
-            dataType: 'json'
-        });
 
         $.ajax({
             type: "POST",
