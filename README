@@ -3,3 +3,6 @@ git add .
 git commit -m 'Iniziale funzionante registrazione'
 git remote add origin https://github.com/archistico/simCantiere.git
 git push origin master
+
+Aggiornare il locale rispetto al remoto
+git pull origin master
