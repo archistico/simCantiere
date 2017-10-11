@@ -1,4 +1,6 @@
 var jsonStringa;
+var ultimoGiorno;
+var ultimoValore;
 var sim;
 
 function setup() {
@@ -16,13 +18,15 @@ function setup() {
 
     function btnSimula() {
         // LEGGI JSON
-        var jqxhr = $.getJSON("registrazione.json", function (json) {
-            jsonStringa = json;
-            var parts = jsonStringa["giorno"].split('/');
-            dataGiorno = new Date(parts[2], parts[1] - 1, parts[0]);
-            simValue = parseFloat(jsonStringa["valore"]);
-        })
-            .always(function () {
+        // ultimoGiorno = jsonStringa['lista'][jsonStringa['lista'].length - 1][0];
+        // ultimoValore = jsonStringa['lista'][jsonStringa['lista'].length - 1][1];
+        var jqxhr = $.getJSON("registrazione.json", function(json) {
+                jsonStringa = json;
+                var parts = jsonStringa["giorno"].split('/');
+                dataGiorno = new Date(parts[2], parts[1] - 1, parts[0]);
+                simValue = parseFloat(jsonStringa["valore"]);
+            })
+            .always(function() {
 
                 // SETTA SIMULAZIONE
                 let profiloOrario = [
@@ -53,16 +57,25 @@ function setup() {
             type: "POST",
             url: "salva.php",
             data: { data: JSON.stringify({ 'giorno': sim.getGiorno(), 'valore': sim.getValore() }) },
-            success: function (msg) {
+            success: function(msg) {
                 console.log(msg);
             },
             dataType: 'json'
         });
 
+        $.ajax({
+            type: "POST",
+            url: "salvaJson.php",
+            data: { data: JSON.stringify({ 'lista': sim.valoreLista, 'profilo': sim.profilo }) },
+            success: function(msg) {
+                console.log(msg);
+            },
+            dataType: 'json'
+        });
     }
 
 
-    var ciclaSimulazione = function () {
+    var ciclaSimulazione = function() {
         sim.calculate();
     }
 }
@@ -99,8 +112,8 @@ class Simulazione {
         return this.valoreAttuale.toFixed(2);
     }
 
-    addValore() {
-        this.valoreLista.push(this.valoreAttuale.toFixed(2));
+    addGiornoValore() {
+        this.valoreLista.push([this.getGiorno(), this.valoreAttuale.toFixed(2)]);
     }
 
     setValore(valore) {
@@ -109,26 +122,22 @@ class Simulazione {
 
     calculate() {
         this.addGiorno();
-        
+
         for (let value of this.profilo.profiloOrario) {
             this.valoreAttuale += value * this.profilo.profiloMensile[this.giornoAttuale.getMonth()] * this.profilo.profiloSettimanale[this.giornoAttuale.getDay()];
         }
 
+        this.addGiornoValore();
         this.getCurrent();
     }
 
     getCurrent() {
         console.log("Data: " + this.getGiorno() + " | Risultato: " + this.getValore());
     }
+
 }
 
-var leggiRegistrazione = function (file) {
-    $.getJSON(file, function (json) {
-        jsonStringa = json;
-    });
-}
-
-var formatDate = function (date) {
+var formatDate = function(date) {
     var day = date.getDate();
     var monthIndex = date.getMonth();
     var year = date.getFullYear();
