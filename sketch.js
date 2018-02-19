@@ -29,6 +29,7 @@ function setup() {
         var jqxhr = $.getJSON("completo.json", function(json) {
                 jsonStringa = json;
 
+                // TODO: verifica dati caricare se NaN o data non valida
                 ultimoGiorno = jsonStringa['lista'][jsonStringa['lista'].length - 1][0];
                 ultimoValore = parseFloat(jsonStringa['lista'][jsonStringa['lista'].length - 1][1]);
 
@@ -51,7 +52,9 @@ function setup() {
                     1, 1, 1, 1, 0.8, 0.8, 0.75, 0.7, 1, 1, 1, 1.25
                 ];
 
-                let profiloannuale = new ProfiloAnnuale(profiloMensile, profiloSettimanale, profiloOrario);
+                let valoreBase = 100;
+
+                let profiloannuale = new ProfiloAnnuale(profiloMensile, profiloSettimanale, profiloOrario, valoreBase);
 
                 sim = new Simulazione(dataInizioSimulazione, ultimoValore, profiloannuale);
 
@@ -81,10 +84,11 @@ function setup() {
 }
 
 class ProfiloAnnuale {
-    constructor(profiloMensile, profiloSettimanale, profiloOrario) {
+    constructor(profiloMensile, profiloSettimanale, profiloOrario, valoreBase ) {
         this.profiloMensile = profiloMensile;
         this.profiloSettimanale = profiloSettimanale;
         this.profiloOrario = profiloOrario;
+        this.valoreBase = valoreBase;
     }
 }
 
@@ -108,6 +112,10 @@ class Simulazione {
         return formatDate(this.giornoAttuale);
     }
 
+    getGiornoSettimana() {
+        return formatDayOfWeek(this.giornoAttuale);
+    }
+
     getValore() {
         return this.valoreAttuale.toFixed(2);
     }
@@ -124,7 +132,7 @@ class Simulazione {
         this.addGiorno();
 
         for (let value of this.profilo.profiloOrario) {
-            this.valoreAttuale += value * this.profilo.profiloMensile[this.giornoAttuale.getMonth()] * this.profilo.profiloSettimanale[this.giornoAttuale.getDay()];
+            this.valoreAttuale += value * this.profilo.profiloMensile[this.giornoAttuale.getMonth()] * this.profilo.profiloSettimanale[this.giornoAttuale.getDay()] * this.profilo.valoreBase;
         }
 
         this.addGiornoValore();
@@ -132,14 +140,29 @@ class Simulazione {
     }
 
     getCurrent() {
-        console.log("Data: " + this.getGiorno() + " | Risultato: " + this.getValore());
+        console.log("Data: " + this.getGiornoSettimana() + "\t " + this.getGiorno() + "\t | Risultato: " + this.getValore());
     }
 
 }
 
 var formatDate = function(date) {
-    var day = date.getDate();
-    var monthIndex = date.getMonth();
-    var year = date.getFullYear();
+    let day = date.getDate();
+    let monthIndex = date.getMonth();
+    let year = date.getFullYear();
     return day + '/' + (monthIndex + 1) + '/' + year;
+}
+
+var formatDayOfWeek = function(date) {
+    let numberDayOfWeek = date.getDay()
+    let dayOfWeek = '';
+    switch(numberDayOfWeek) {
+        case 0 : dayOfWeek='Domenica'; break;
+        case 1 : dayOfWeek='Lunedì'; break;
+        case 2 : dayOfWeek='Martedì'; break;
+        case 3 : dayOfWeek='Mercoledì'; break;
+        case 4 : dayOfWeek='Giovedì'; break;
+        case 5 : dayOfWeek='Venerdì'; break;
+        case 6 : dayOfWeek='Sabato'; break;        
+    }
+    return dayOfWeek;
 }
