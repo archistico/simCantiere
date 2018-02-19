@@ -5,6 +5,7 @@ function setup() {
     noCanvas();
     let startbutton = select('#startbutton');
     let stopbutton = select('#stopbutton');
+	let calcolabutton = select('#calcolabutton');
     var timer;
 
     var giorno = 0;
@@ -15,7 +16,14 @@ function setup() {
 
     startbutton.mousePressed(btnSimula);
     stopbutton.mousePressed(btnStop);
-
+	calcolabutton.mousePressed(calcola);
+	
+	function calcola() {
+		let valore = select('#valoreinput').elt.value;
+		console.log(valore);
+	}
+	
+	
     function btnSimula() {
         // LEGGI JSON
         var jqxhr = $.getJSON("completo.json", function(json) {
